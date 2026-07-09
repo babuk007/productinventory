@@ -4,7 +4,7 @@ Simple Spring Boot REST API project with one endpoint to return sample product d
 
 ## Requirements
 
-- Java 21
+- Java 8
 - Maven 3.9+
 
 ## Run the Application

@@ -25,6 +25,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Debug Secrets Presence
+        run: |
+          echo "Is Client ID present? ${{ secrets.AZURE_CLIENT_ID != '' }}"
+          echo "Is Tenant ID present? ${{ secrets.AZURE_TENANT_ID != '' }}"
+          echo "Is Subscription ID present? ${{ secrets.AZURE_SUBSCRIPTION_ID != '' }}"
+
       - name: Azure Login
         uses: azure/login@v3
         with:

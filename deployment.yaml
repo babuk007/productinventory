@@ -20,7 +20,7 @@ spec:
       # az aks update -g <resource-group> -n <cluster-name> --attach-acr <acr-name>
       containers:
       - name: productinventory
-        image: appmodcr.azurecr.io/productinventory:${{ github.sha }}
+        image: appmodcr.azurecr.io/productinventory:28820938
         ports:
         - containerPort: 8080
         resources:

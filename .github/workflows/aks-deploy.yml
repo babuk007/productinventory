@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  RESOURCE_GROUP: aks-modernizer-rg
+  RESOURCE_GROUP: rg-appmod-agentic
   CLUSTER_NAME: aks-modernizer-cluster
   ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
   SERVICE_NAME: productinventory

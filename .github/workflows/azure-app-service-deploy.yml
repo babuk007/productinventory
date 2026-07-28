@@ -14,7 +14,7 @@ on:
 env:
   ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
   SERVICE_NAME: productinventory
-  APP_SERVICE_NAME: productinventory-app
+  APP_SERVICE_NAME: productinventory
   environment: DEV
 
 permissions:

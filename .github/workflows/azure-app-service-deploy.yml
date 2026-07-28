@@ -15,6 +15,7 @@ env:
   ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
   SERVICE_NAME: productinventory
   APP_SERVICE_NAME: ${{ secrets.AZURE_APP_SERVICE_NAME }}
+  environment: DEV
 
 jobs:
   build-and-deploy:
@@ -24,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Log in to Azure
-        uses: azure/login@v3
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}

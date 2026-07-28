@@ -9,7 +9,7 @@ on:
 
 env:
   RESOURCE_GROUP: rg-appmod-agentic
-  CLUSTER_NAME: aks-modernizer-cluster
+  CLUSTER_NAME: nomad_cluster_group
   ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
   SERVICE_NAME: productinventory
 

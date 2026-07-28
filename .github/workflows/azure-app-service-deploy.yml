@@ -33,6 +33,7 @@ jobs:
         with:
           client-id: ${{ secrets.CLIENTID }}
           tenant-id: ${{ secrets.TENANTID }}
+          client-secret: ${{secrets.CLIENTSECRET }}
           subscription-id: ${{ secrets.SUBSCRIPTIONID }}
           #creds: ${{ secrets.AZURE_CREDENTIALS }}
 

@@ -5,22 +5,13 @@ on:
     branches:
       - main
       - master
-  pull_request:
-    branches:
-      - main
-      - master
   workflow_dispatch:
 
 env:
   ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
   SERVICE_NAME: productinventory
-  APP_SERVICE_NAME: productinventoryapp
-  environment: DEV
+  APP_SERVICE_NAME: ${{ secrets.AZURE_APP_SERVICE_NAME }}
 
-permissions:
-  id-token: write
-  contents: read
-  
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -47,8 +38,6 @@ jobs:
           username: 00000000-0000-0000-0000-000000000000
           password: ${{ steps.acr-token.outputs.token }}
 
-        
-
       - name: Build and Push Image
         run: |
           docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.SERVICE_NAME }}:${{ github.sha }} .
@@ -59,3 +48,4 @@ jobs:
         with:
           app-name: ${{ env.APP_SERVICE_NAME }}
           images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.SERVICE_NAME }}:${{ github.sha }}
+

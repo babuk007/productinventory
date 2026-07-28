@@ -17,6 +17,10 @@ env:
   APP_SERVICE_NAME: ${{ secrets.AZURE_APP_SERVICE_NAME }}
   environment: DEV
 
+permissions:
+  id-token: write
+  contents: read
+  
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest

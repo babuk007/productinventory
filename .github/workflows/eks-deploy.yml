@@ -9,7 +9,7 @@ on:
 
 env:
   AWS_REGION: us-east-2
-  CLUSTER_NAME: eks-modernizer-cluster
+  CLUSTER_NAME: backend
   ECR_REPOSITORY: productinventory
 
 jobs:

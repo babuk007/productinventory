@@ -1,10 +1,6 @@
 name: Deploy to Azure Kubernetes Service (AKS)
 
 on:
-  push:
-    branches:
-      - main
-      - master
   workflow_dispatch:
 
 env:

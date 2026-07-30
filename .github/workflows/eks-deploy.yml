@@ -9,7 +9,7 @@ on:
 
 env:
   AWS_REGION: us-east-2
-  CLUSTER_NAME: backend
+  CLUSTER_NAME: arn:aws:ecs:us-east-2:667811466675:cluster/backend
   ECR_REPOSITORY: productinventory
 
 jobs:

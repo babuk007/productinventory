@@ -1,30 +1,63 @@
 package com.example.productinventory.controller;
 
+import com.example.productinventory.dto.ProductRequest;
+import com.example.productinventory.dto.StockAdjustmentRequest;
 import com.example.productinventory.model.Product;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.productinventory.service.InventoryService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
 @RequestMapping({"/api/products", "/api/product"})
+@CrossOrigin(origins = "*")
 public class ProductController {
 
+    private final InventoryService inventoryService;
+
+    public ProductController(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
     @GetMapping
-    public List<Product> getProducts() {
-        return Arrays.asList(
-                new Product(1L, "Apple iPhone 15", "Electronics", 79999.00, 25),
-                new Product(2L, "Sony WH-1000XM5 Headphones", "Electronics", 29999.00, 40),
-                new Product(3L, "Nike Air Max Running Shoes", "Apparel", 8999.00, 15),
-                new Product(4L, "Ergonomic Office Chair", "Furniture", 15499.00, 10),
-                new Product(5L, "Stainless Steel Water Bottle", "Home & Kitchen", 1499.00, 100),
-                new Product(6L, "Dell UltraSharp 27\" 4K Monitor", "Electronics", 34999.00, 12),
-                new Product(7L, "Logitech MX Master 3S Mouse", "Electronics", 9499.00, 30),
-                new Product(8L, "Levi's 511 Slim Fit Jeans", "Apparel", 3299.00, 50),
-                new Product(9L, "Instant Pot Duo 7-in-1 Cooker", "Home & Kitchen", 8499.00, 20),
-                new Product(10L, "Minimalist Oak Dining Table", "Furniture", 24999.00, 5)
-        );
+    public ResponseEntity<List<Product>> getProducts(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String status) {
+        List<Product> products = inventoryService.getAllProducts(search, categoryId, status);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+        Product product = inventoryService.getProductById(id);
+        return ResponseEntity.ok(product);
+    }
+
+    @PostMapping
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductRequest request) {
+        Product created = inventoryService.createProduct(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
+        Product updated = inventoryService.updateProduct(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        inventoryService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/adjust-stock")
+    public ResponseEntity<Product> adjustStock(@PathVariable Long id, @Valid @RequestBody StockAdjustmentRequest request) {
+        Product updated = inventoryService.adjustStock(id, request);
+        return ResponseEntity.ok(updated);
     }
 }

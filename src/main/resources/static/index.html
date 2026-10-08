@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Product Inventory System</title>
+    <!-- Bootstrap 3.4.1 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- Legacy Top Navigation Bar -->
+    <nav class="navbar navbar-inverse navbar-static-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">
+                    <i class="glyphicon glyphicon-th-large"></i> Enterprise Product Inventory
+                    <small>LEGACY v1.4</small>
+                </a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="/h2-console" target="_blank"><i class="glyphicon glyphicon-hdd"></i> H2 Database Console</a></li>
+                    <li><a href="/actuator/health" target="_blank"><i class="glyphicon glyphicon-heart"></i> Actuator Health</a></li>
+                    <li><a href="/api/products" target="_blank"><i class="glyphicon glyphicon-file"></i> Raw JSON API</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid">
+        <!-- Notification Banner -->
+        <div id="alert-container"></div>
+
+        <!-- KPI Header Metrics -->
+        <div class="row">
+            <div class="col-xs-12 col-sm-6 col-md-2">
+                <div class="panel panel-primary kpi-card">
+                    <div class="panel-heading"><i class="glyphicon glyphicon-barcode"></i> Total SKUs</div>
+                    <div class="panel-body text-center">
+                        <div class="kpi-value text-primary" id="stat-total-products">-</div>
+                        <div class="kpi-subtext">Active catalog items</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-12 col-sm-6 col-md-2">
+                <div class="panel panel-info kpi-card">
+                    <div class="panel-heading"><i class="glyphicon glyphicon-inbox"></i> Total Units</div>
+                    <div class="panel-body text-center">
+                        <div class="kpi-value text-info" id="stat-total-quantity">-</div>
+                        <div class="kpi-subtext">Stock count across bays</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-12 col-sm-6 col-md-4">
+                <div class="panel panel-default kpi-card" style="border-top: 3px solid #2e7d32;">
+                    <div class="panel-heading text-success" style="color: #2e7d32;"><i class="glyphicon glyphicon-usd"></i> Inventory Valuation</div>
+                    <div class="panel-body text-center">
+                        <div class="kpi-value text-success" id="stat-inventory-value">-</div>
+                        <div class="kpi-subtext">Calculated total asset value</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-12 col-sm-6 col-md-2">
+                <div class="panel panel-warning kpi-card">
+                    <div class="panel-heading"><i class="glyphicon glyphicon-warning-sign"></i> Low Stock Alerts</div>
+                    <div class="panel-body text-center">
+                        <div class="kpi-value text-warning" id="stat-low-stock">-</div>
+                        <div class="kpi-subtext">Below threshold</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xs-12 col-sm-6 col-md-2">
+                <div class="panel panel-danger kpi-card">
+                    <div class="panel-heading"><i class="glyphicon glyphicon-remove-sign"></i> Out of Stock</div>
+                    <div class="panel-body text-center">
+                        <div class="kpi-value text-danger" id="stat-out-of-stock">-</div>
+                        <div class="kpi-subtext">Needs replenishment</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="filter-bar">
+            <div class="row">
+                <div class="col-md-4 col-sm-6">
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+                        <input type="text" id="filter-search" class="form-control" placeholder="Search by SKU, name, or description...">
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-sm-3">
+                    <select id="filter-category" class="form-control">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 col-sm-3">
+                    <select id="filter-status" class="form-control">
+                        <option value="">All Statuses</option>
+                        <option value="IN_STOCK">In Stock</option>
+                        <option value="LOW_STOCK">Low Stock</option>
+                        <option value="OUT_OF_STOCK">Out of Stock</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 text-right">
+                    <button class="btn btn-default" id="btn-refresh" title="Refresh table">
+                        <i class="glyphicon glyphicon-refresh"></i> Refresh
+                    </button>
+                    <button class="btn btn-primary btn-enterprise" id="btn-add-product">
+                        <i class="glyphicon glyphicon-plus"></i> Add Item
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area: Products Table and Activity Log -->
+        <div class="row">
+            <!-- Left Main Column: Inventory Catalog -->
+            <div class="col-md-9">
+                <div class="panel panel-default inventory-panel">
+                    <div class="panel-heading" style="background:#fff; border-bottom: 1px solid #e2e8f0; font-weight:600;">
+                        <i class="glyphicon glyphicon-list-alt"></i> Current Warehouse Stock Catalog
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="products-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 130px;">SKU</th>
+                                    <th>Item Name & Details</th>
+                                    <th style="width: 140px;">Category</th>
+                                    <th style="width: 130px;">Warehouse Bin</th>
+                                    <th style="width: 100px;" class="text-right">Unit Price</th>
+                                    <th style="width: 100px;" class="text-center">Stock Level</th>
+                                    <th style="width: 110px;" class="text-center">Status</th>
+                                    <th style="width: 140px;" class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-tbody">
+                                <!-- Populated dynamically by app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Audit Log & System Info -->
+            <div class="col-md-3">
+                <!-- Recent Stock Movements -->
+                <div class="panel panel-default inventory-panel">
+                    <div class="panel-heading" style="background:#fff; border-bottom: 1px solid #e2e8f0; font-weight:600;">
+                        <i class="glyphicon glyphicon-time"></i> Recent Stock Activity
+                    </div>
+                    <div class="panel-body">
+                        <div class="audit-list" id="audit-feed">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modernization Metadata Info Box -->
+                <div class="panel panel-info">
+                    <div class="panel-heading" style="font-weight: 600;">
+                        <i class="glyphicon glyphicon-info-sign"></i> Modernization Assessment
+                    </div>
+                    <div class="panel-body" style="font-size: 12px; line-height: 1.6;">
+                        <p><strong>Stack:</strong> Java 8 / Spring Boot 2.7, jQuery, Bootstrap 3</p>
+                        <p><strong>Modernization Goal:</strong> Containerize, upgrade to Java 17+, decompose monolith to microservices or modern SPA frontend.</p>
+                        <span class="label label-primary">Ready for CloudShift Modernization</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 1: Add / Edit Product -->
+    <div class="modal fade" id="product-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="product-form">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title" id="product-modal-title">Register Inventory Item</h4>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="product-id">
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="product-sku">SKU Code *</label>
+                                    <input type="text" class="form-control" id="product-sku" required placeholder="e.g. SKU-ELC-101">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="product-category">Category *</label>
+                                    <select class="form-control" id="product-category" required></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product-name">Product Name *</label>
+                            <input type="text" class="form-control" id="product-name" required placeholder="e.g. Ergonomic Keyboard">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product-description">Description</label>
+                            <textarea class="form-control" id="product-description" rows="2" placeholder="Specifications, model, or notes..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="product-price">Unit Price ($) *</label>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="product-price" required placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="product-quantity">Stock Quantity *</label>
+                                    <input type="number" min="0" class="form-control" id="product-quantity" required placeholder="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="product-threshold">Min Threshold *</label>
+                                    <input type="number" min="0" class="form-control" id="product-threshold" required value="10">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product-location">Warehouse Location / Bin</label>
+                            <input type="text" class="form-control" id="product-location" placeholder="e.g. Aisle 4 - Shelf B">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-enterprise">Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Stock Adjustment -->
+    <div class="modal fade" id="stock-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <form id="stock-adjust-form">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title"><i class="glyphicon glyphicon-transfer"></i> Stock Movement</h4>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="stock-product-id">
+                        <p><strong>Item:</strong> <span id="stock-product-name"></span></p>
+                        <p><strong>Current Units:</strong> <span class="badge" id="stock-current-quantity"></span></p>
+
+                        <div class="form-group">
+                            <label for="stock-type">Movement Type *</label>
+                            <select class="form-control" id="stock-type" required>
+                                <option value="RESTOCK">Restock (Inbound Shipments)</option>
+                                <option value="DISPATCH">Dispatch (Outbound Orders)</option>
+                                <option value="ADJUSTMENT">Audit Count Adjustment</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stock-quantity">Quantity *</label>
+                            <input type="number" min="1" class="form-control" id="stock-quantity" required placeholder="Quantity">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stock-reason">Reason / Reference Note</label>
+                            <input type="text" class="form-control" id="stock-reason" placeholder="e.g. PO-8910 or Damage write-off">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-enterprise">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery 3.6.0 & Bootstrap 3.4.1 JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
+    <!-- Application Logic -->
+    <script src="/js/app.js"></script>
+</body>
+</html>

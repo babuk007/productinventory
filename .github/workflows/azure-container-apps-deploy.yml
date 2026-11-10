@@ -9,7 +9,7 @@ on:
 
 env:
   ACR_NAME: ${{ secrets.AZURE_ACR_NAME }}
-  RESOURCE_GROUP: aks-modernizer-rg
+  RESOURCE_GROUP: nomad_cluster_group
   CONTAINER_APP_NAME: productinventory-aca
   SERVICE_NAME: productinventory
 

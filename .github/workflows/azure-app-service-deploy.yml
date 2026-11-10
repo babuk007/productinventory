@@ -31,11 +31,11 @@ jobs:
 
       - name: Ensure App Service Plan & Web App exist
         run: |
-          az appservice plan show --name appmod-service-plan --resource-group rg-appmod-agentic || \
-          az appservice plan create --name appmod-service-plan --resource-group rg-appmod-agentic --sku B1 --is-linux --location eastus
+          az appservice plan show --name appmod-service-plan --resource-group nomad_cluster_group || \
+          az appservice plan create --name appmod-service-plan --resource-group nomad_cluster_group --sku B1 --is-linux --location eastus
           
-          az webapp show --name ${{ env.APP_SERVICE_NAME }} --resource-group rg-appmod-agentic || \
-          az webapp create --name ${{ env.APP_SERVICE_NAME }} --resource-group rg-appmod-agentic --plan appmod-service-plan --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.SERVICE_NAME }}:latest
+          az webapp show --name ${{ env.APP_SERVICE_NAME }} --resource-group nomad_cluster_group || \
+          az webapp create --name ${{ env.APP_SERVICE_NAME }} --resource-group nomad_cluster_group --plan appmod-service-plan --deployment-container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.SERVICE_NAME }}:latest
 
       - name: Get ACR Access Token
         id: acr-token
